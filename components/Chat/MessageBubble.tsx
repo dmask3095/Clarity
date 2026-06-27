@@ -30,7 +30,9 @@ function parseTaskSteps(content: string) {
     )
     .filter(Boolean);
 
-  return lines.length > 1 && lines.every((line) => /^(\d+\.\s|🟢\s)/.test(line)) ? steps : null;
+  return lines.length > 1 && lines.length <= 7 && lines.every((line) => /^(\d+\.\s|🟢\s)/.test(line))
+    ? steps
+    : null;
 }
 
 function renderInlineStrong(text: string) {
@@ -45,6 +47,35 @@ function renderInlineStrong(text: string) {
 
     return <span key={`${part}-${index}`}>{part}</span>;
   });
+}
+
+function renderParagraphBlock(paragraph: string, index: number) {
+  const lines = paragraph
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length > 1 && lines.every((line) => /^[-*]\s+/.test(line))) {
+    return (
+      <ul key={`${paragraph}-${index}`} className="list-disc space-y-2 pl-5">
+        {lines.map((line, lineIndex) => (
+          <li key={`${line}-${lineIndex}`}>{renderInlineStrong(line.replace(/^[-*]\s+/, ""))}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (lines.length > 1 && lines.every((line) => /^\d+\.\s+/.test(line))) {
+    return (
+      <ol key={`${paragraph}-${index}`} className="list-decimal space-y-2 pl-5">
+        {lines.map((line, lineIndex) => (
+          <li key={`${line}-${lineIndex}`}>{renderInlineStrong(line.replace(/^\d+\.\s+/, ""))}</li>
+        ))}
+      </ol>
+    );
+  }
+
+  return <p key={`${paragraph}-${index}`}>{renderInlineStrong(paragraph)}</p>;
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
@@ -71,9 +102,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <TaskList steps={taskSteps} />
           ) : (
             <div className="space-y-3 text-sm leading-relaxed text-text-primary sm:text-[15px]">
-              {cleaned.split("\n\n").map((paragraph, index) => (
-                <p key={`${paragraph}-${index}`}>{renderInlineStrong(paragraph)}</p>
-              ))}
+              {cleaned.split("\n\n").map((paragraph, index) => renderParagraphBlock(paragraph, index))}
             </div>
           )
         ) : (

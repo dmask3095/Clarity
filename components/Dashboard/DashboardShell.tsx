@@ -2,11 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChatWindow } from "@/components/Chat/ChatWindow";
 import { EmptyState } from "@/components/Dashboard/EmptyState";
 import { InputBar } from "@/components/Chat/InputBar";
 import { UsageCard } from "@/components/Dashboard/UsageCard";
+import { StatusToast } from "@/components/Feedback/StatusToast";
 import { MoodCheckIn } from "@/components/MoodCheckIn";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
 import { useUsage } from "@/hooks/useUsage";
@@ -22,6 +23,7 @@ import {
   buildThoughtDumpPrompt,
   type MoodTag,
 } from "@/lib/prompts";
+import { copySessionTranscript } from "@/lib/session-export";
 import { useSessionStore } from "@/store/sessionStore";
 
 const FocusMode = dynamic(() => import("@/components/Modes/FocusMode"), { ssr: false });
@@ -54,6 +56,16 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
   const [taskGoal, setTaskGoal] = useState("");
   const [taskOpen, setTaskOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone?: "default" | "warning" } | null>(null);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setToast(null), 2600);
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
 
   async function handleSignOut() {
     await signOut();
@@ -94,6 +106,18 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
     await refreshUsage();
   }
 
+  async function handleCopySession() {
+    try {
+      await copySessionTranscript(messages);
+      setToast({ message: "Session copied to your clipboard." });
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "Unable to copy this session right now.",
+        tone: "warning",
+      });
+    }
+  }
+
   if (!hasHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
@@ -114,6 +138,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
         onOpenTasks={() => setTaskOpen(true)}
         onNewSession={handleNewSession}
         onOpenSettings={() => setSettingsOpen(true)}
+        onCopySession={() => void handleCopySession()}
         onSignOut={() => void handleSignOut()}
       />
 
@@ -124,6 +149,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           onOpenTasks={() => setTaskOpen(true)}
           onNewSession={handleNewSession}
           onOpenSettings={() => setSettingsOpen(true)}
+          onCopySession={() => void handleCopySession()}
           onSignOut={() => void handleSignOut()}
           onSelectMode={setMode}
         />
@@ -245,6 +271,8 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           onChange={setPreferences}
         />
       ) : null}
+
+      {toast ? <StatusToast message={toast.message} tone={toast.tone} /> : null}
     </div>
   );
 }

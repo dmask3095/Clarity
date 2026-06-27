@@ -2,6 +2,7 @@
 
 import {
   CheckSquare,
+  Copy,
   Crosshair,
   FileText,
   LogOut,
@@ -18,6 +19,7 @@ interface SidebarProps {
   onOpenTasks: () => void;
   onNewSession: () => void;
   onOpenSettings: () => void;
+  onCopySession: () => void;
   onSignOut: () => void;
 }
 
@@ -52,6 +54,7 @@ export function Sidebar({
   onOpenTasks,
   onNewSession,
   onOpenSettings,
+  onCopySession,
   onSignOut,
 }: SidebarProps) {
   return (
@@ -81,6 +84,9 @@ export function Sidebar({
         <FileText size={18} />
       </SidebarButton>
       <div className="mt-auto flex flex-col gap-4">
+        <SidebarButton ariaLabel="Copy session" onClick={onCopySession}>
+          <Copy size={18} />
+        </SidebarButton>
         <SidebarButton ariaLabel="Settings" onClick={onOpenSettings}>
           <Settings size={18} />
         </SidebarButton>
