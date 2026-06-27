@@ -7,6 +7,7 @@ import {
   LogOut,
   MessageSquare,
   RefreshCw,
+  Settings,
   Wind,
 } from "lucide-react";
 import type { AppMode } from "@/store/sessionStore";
@@ -16,6 +17,7 @@ interface SidebarProps {
   onSelectMode: (mode: AppMode) => void;
   onOpenTasks: () => void;
   onNewSession: () => void;
+  onOpenSettings: () => void;
   onSignOut: () => void;
 }
 
@@ -49,6 +51,7 @@ export function Sidebar({
   onSelectMode,
   onOpenTasks,
   onNewSession,
+  onOpenSettings,
   onSignOut,
 }: SidebarProps) {
   return (
@@ -78,6 +81,9 @@ export function Sidebar({
         <FileText size={18} />
       </SidebarButton>
       <div className="mt-auto flex flex-col gap-4">
+        <SidebarButton ariaLabel="Settings" onClick={onOpenSettings}>
+          <Settings size={18} />
+        </SidebarButton>
         <SidebarButton ariaLabel="New session" onClick={onNewSession}>
           <RefreshCw size={18} />
         </SidebarButton>

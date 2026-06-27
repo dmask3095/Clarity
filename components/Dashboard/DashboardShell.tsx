@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/Dashboard/EmptyState";
 import { InputBar } from "@/components/Chat/InputBar";
 import { UsageCard } from "@/components/Dashboard/UsageCard";
 import { MoodCheckIn } from "@/components/MoodCheckIn";
+import SettingsPanel from "@/components/Settings/SettingsPanel";
 import { useUsage } from "@/hooks/useUsage";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -42,14 +43,17 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
   const mood = useSessionStore((state) => state.mood);
   const mode = useSessionStore((state) => state.mode);
   const sessionGoal = useSessionStore((state) => state.sessionGoal);
+  const preferences = useSessionStore((state) => state.preferences);
   const isStreaming = useSessionStore((state) => state.isStreaming);
   const hasHydrated = useSessionStore((state) => state.hasHydrated);
   const setMood = useSessionStore((state) => state.setMood);
+  const setPreferences = useSessionStore((state) => state.setPreferences);
   const setMode = useSessionStore((state) => state.setMode);
   const setGoal = useSessionStore((state) => state.setGoal);
   const clearSession = useSessionStore((state) => state.clearSession);
   const [taskGoal, setTaskGoal] = useState("");
   const [taskOpen, setTaskOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   async function handleSignOut() {
     await signOut();
@@ -109,6 +113,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
         onSelectMode={setMode}
         onOpenTasks={() => setTaskOpen(true)}
         onNewSession={handleNewSession}
+        onOpenSettings={() => setSettingsOpen(true)}
         onSignOut={() => void handleSignOut()}
       />
 
@@ -118,6 +123,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           userLabel={initialUserLabel}
           onOpenTasks={() => setTaskOpen(true)}
           onNewSession={handleNewSession}
+          onOpenSettings={() => setSettingsOpen(true)}
           onSignOut={() => void handleSignOut()}
           onSelectMode={setMode}
         />
@@ -229,6 +235,14 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
               hiddenPrompt: buildThoughtDumpPrompt(value),
             }).then(() => refreshUsage());
           }}
+        />
+      ) : null}
+
+      {settingsOpen ? (
+        <SettingsPanel
+          preferences={preferences}
+          onClose={() => setSettingsOpen(false)}
+          onChange={setPreferences}
         />
       ) : null}
     </div>

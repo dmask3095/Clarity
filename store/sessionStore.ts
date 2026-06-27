@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { defaultPreferences, type UserPreferences } from "@/lib/preferences";
 import type { MoodTag } from "@/lib/prompts";
 
 export type AppMode = "chat" | "focus" | "grounding" | "thoughtdump";
@@ -19,11 +20,13 @@ interface SessionState {
   messages: ChatMessage[];
   mood: MoodTag | null;
   sessionGoal: string | null;
+  preferences: UserPreferences;
   mode: AppMode;
   isStreaming: boolean;
   hasHydrated: boolean;
   setMood: (mood: MoodTag | null) => void;
   setGoal: (goal: string | null) => void;
+  setPreferences: (preferences: Partial<UserPreferences>) => void;
   setMode: (mode: AppMode) => void;
   addMessage: (message: ChatMessagePayload) => void;
   startAssistantMessage: () => void;
@@ -48,11 +51,16 @@ export const useSessionStore = create<SessionState>()(
       messages: [],
       mood: null,
       sessionGoal: null,
+      preferences: defaultPreferences,
       mode: "chat",
       isStreaming: false,
       hasHydrated: false,
       setMood: (mood) => set({ mood }),
       setGoal: (goal) => set({ sessionGoal: goal }),
+      setPreferences: (preferences) =>
+        set((state) => ({
+          preferences: { ...state.preferences, ...preferences },
+        })),
       setMode: (mode) => set({ mode }),
       setStreaming: (isStreaming) => set({ isStreaming }),
       setHydrated: (hasHydrated) => set({ hasHydrated }),
@@ -107,6 +115,7 @@ export const useSessionStore = create<SessionState>()(
         messages: state.messages,
         mood: state.mood,
         sessionGoal: state.sessionGoal,
+        preferences: state.preferences,
         mode: state.mode,
       }),
       onRehydrateStorage: () => (state) => {

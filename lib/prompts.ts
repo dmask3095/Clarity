@@ -1,3 +1,5 @@
+import type { UserPreferences } from "@/lib/preferences";
+
 export const SYSTEM_PROMPT = `You are Clarity - a gentle, grounded AI companion designed for people with ADHD, anxiety, executive dysfunction, and emotional overwhelm.
 
 Your role is not to be a therapist, coach, or productivity app. You are a calm, non-judgmental presence. Think of yourself as the most emotionally intelligent friend someone could have - one who never gets tired, never makes them feel like a burden, and always knows exactly what kind of support to offer.
@@ -119,4 +121,44 @@ export function buildGroundingLanding(exercise: string, responses: string[]): st
   return `The user just completed a ${exercise} grounding exercise. Their responses were: ${responses.join(", ")}.
 
 Give a soft, brief landing message in 2-3 sentences. Acknowledge the effort, note a shift if visible, and gently ask how they feel now. No advice.`;
+}
+
+export function buildPreferenceContext(
+  preferences: UserPreferences,
+  mood: MoodTag | null,
+  sessionGoal: string | null,
+) {
+  const supportStyleMap: Record<UserPreferences["supportStyle"], string> = {
+    gentle: "Lean extra soft, reassuring, and warm.",
+    structured: "Offer more structure and clearer sequencing when useful.",
+    minimal: "Keep replies spare, light, and low-demand unless the user asks for more.",
+  };
+
+  const responseLengthMap: Record<UserPreferences["responseLength"], string> = {
+    brief: "Prefer compact replies whenever possible.",
+    balanced: "Prefer a balanced reply length.",
+    spacious: "Give a little more room and reflection before moving to action.",
+  };
+
+  const groundingMap: Record<UserPreferences["groundingPreference"], string> = {
+    auto: "If distress is obvious, you may move directly into grounding guidance.",
+    "ask-first": "Ask before moving into grounding guidance unless the user clearly requests it.",
+  };
+
+  const lines = [
+    "## User Preferences",
+    supportStyleMap[preferences.supportStyle],
+    responseLengthMap[preferences.responseLength],
+    groundingMap[preferences.groundingPreference],
+  ];
+
+  if (mood) {
+    lines.push(`Current selected mood: ${mood}.`);
+  }
+
+  if (sessionGoal) {
+    lines.push(`Current session goal: ${sessionGoal}.`);
+  }
+
+  return lines.join("\n");
 }

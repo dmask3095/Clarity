@@ -1,7 +1,7 @@
 "use client";
 
 import { streamChat } from "@/lib/anthropic";
-import { SYSTEM_PROMPT } from "@/lib/prompts";
+import { buildPreferenceContext, SYSTEM_PROMPT } from "@/lib/prompts";
 import { useSessionStore, type ChatMessagePayload } from "@/store/sessionStore";
 
 interface SendMessageOptions {
@@ -25,6 +25,9 @@ export function useChat() {
   const replaceLastAssistant = useSessionStore((state) => state.replaceLastAssistant);
   const setStreaming = useSessionStore((state) => state.setStreaming);
   const setGoal = useSessionStore((state) => state.setGoal);
+  const mood = useSessionStore((state) => state.mood);
+  const sessionGoal = useSessionStore((state) => state.sessionGoal);
+  const preferences = useSessionStore((state) => state.preferences);
 
   async function sendMessage(content: string, options: SendMessageOptions = {}) {
     const visibleUserMessage = options.visibleUserMessage ?? content;
@@ -49,12 +52,17 @@ export function useChat() {
       .map((message) => toPayload(message))
       .concat(options.hiddenPrompt ? [{ role: "user" as const, content: options.hiddenPrompt }] : []);
 
+    const activeGoal = options.goal !== undefined ? options.goal : sessionGoal;
+    const systemPrompt = [SYSTEM_PROMPT, buildPreferenceContext(preferences, mood, activeGoal)]
+      .filter(Boolean)
+      .join("\n\n");
+
     startAssistantMessage();
     setStreaming(true);
 
     await streamChat(
       apiMessages,
-      SYSTEM_PROMPT,
+      systemPrompt,
       (text) => appendToLastAssistant(text),
       () => setStreaming(false),
       (error) => {
