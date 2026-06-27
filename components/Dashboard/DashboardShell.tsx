@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChatWindow } from "@/components/Chat/ChatWindow";
 import { InputBar } from "@/components/Chat/InputBar";
+import { UsageCard } from "@/components/Dashboard/UsageCard";
 import { MoodCheckIn } from "@/components/MoodCheckIn";
+import { useUsage } from "@/hooks/useUsage";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useChat } from "@/hooks/useChat";
@@ -34,6 +36,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
   const router = useRouter();
   const { signOut } = useSession();
   const { sendMessage, sendPrompt } = useChat();
+  const { usage, loading: usageLoading, error: usageError, refresh: refreshUsage } = useUsage();
   const messages = useSessionStore((state) => state.messages);
   const mood = useSessionStore((state) => state.mood);
   const mode = useSessionStore((state) => state.mode);
@@ -61,6 +64,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
   async function handleMoodSelect(nextMood: MoodTag) {
     setMood(nextMood);
     await sendPrompt(buildMoodGreeting(nextMood));
+    await refreshUsage();
   }
 
   async function handleTaskBreakdown() {
@@ -74,9 +78,15 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
       goal: trimmed,
       hiddenPrompt: buildTaskBreakdownPrompt(trimmed),
     });
+    await refreshUsage();
 
     setTaskGoal("");
     setTaskOpen(false);
+  }
+
+  async function handleSendMessage(content: string) {
+    await sendMessage(content);
+    await refreshUsage();
   }
 
   if (!hasHydrated) {
@@ -105,6 +115,17 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
 
         <main className="flex flex-1 flex-col">
           <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+            {usage ? (
+              <UsageCard
+                limit={usage.limit}
+                used={usage.used}
+                remaining={usage.remaining}
+                resetsOn={usage.resetsOn}
+                loading={usageLoading}
+                error={usageError}
+              />
+            ) : null}
+
             {taskOpen ? (
               <div className="panel mx-4 mt-4 p-5 sm:mx-6">
                 <p className="text-sm text-text-secondary">What feels too big right now?</p>
@@ -144,7 +165,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           </div>
         </main>
 
-        <InputBar disabled={isStreaming} onSend={sendMessage} />
+        <InputBar disabled={isStreaming} onSend={handleSendMessage} />
       </div>
 
       {mode === "focus" ? (
@@ -155,7 +176,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           }}
           onCheckIn={() => {
             if (sessionGoal) {
-              void sendPrompt(buildFocusCheckIn(sessionGoal));
+              void sendPrompt(buildFocusCheckIn(sessionGoal)).then(() => refreshUsage());
             }
           }}
           onDone={() => {
@@ -163,7 +184,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
             if (sessionGoal) {
               void sendPrompt(
                 `The user just finished a focus session for "${sessionGoal}". Ask in one warm sentence how it went.`,
-              );
+              ).then(() => refreshUsage());
             }
           }}
         />
@@ -174,7 +195,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           onClose={() => setMode("chat")}
           onComplete={(exercise, responses) => {
             setMode("chat");
-            void sendPrompt(buildGroundingLanding(exercise, responses));
+            void sendPrompt(buildGroundingLanding(exercise, responses)).then(() => refreshUsage());
           }}
         />
       ) : null}
@@ -186,7 +207,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
             setMode("chat");
             void sendMessage(value, {
               hiddenPrompt: buildThoughtDumpPrompt(value),
-            });
+            }).then(() => refreshUsage());
           }}
         />
       ) : null}

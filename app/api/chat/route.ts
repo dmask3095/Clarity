@@ -1,10 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import { createClient } from "@/lib/supabase-server";
+import { DAILY_MESSAGE_LIMIT, getTodayDateKey } from "@/lib/usage";
 
 export const runtime = "nodejs";
 
-const DAILY_LIMIT = 50;
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 
 const anthropic = new Anthropic({
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayDateKey();
 
   const { data: usage } = await supabase
     .from("usage")
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   const currentCount = usage?.message_count ?? 0;
 
-  if (currentCount >= DAILY_LIMIT) {
+  if (currentCount >= DAILY_MESSAGE_LIMIT) {
     return Response.json(
       {
         error: "daily_limit",

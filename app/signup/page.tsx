@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { AuthCard } from "@/components/Auth/AuthCard";
+import { normalizeAuthError } from "@/lib/auth-errors";
 import { createClient } from "@/lib/supabase";
 
 export default function SignupPage() {
@@ -10,6 +11,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleSignup() {
     const supabase = createClient();
@@ -28,7 +30,7 @@ export default function SignupPage() {
     setLoading(false);
 
     if (authError) {
-      setError(authError.message);
+      setError(normalizeAuthError(authError.message));
       return;
     }
 
@@ -37,6 +39,7 @@ export default function SignupPage() {
 
   async function handleGoogle() {
     const supabase = createClient();
+    setGoogleLoading(true);
     setError("");
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -46,15 +49,22 @@ export default function SignupPage() {
     });
 
     if (oauthError) {
-      setError(oauthError.message);
+      setError(normalizeAuthError(oauthError.message));
+      setGoogleLoading(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center px-6 py-16">
-      <div className="panel mt-10 w-full max-w-sm p-8">
-        <p className="font-display text-3xl italic text-text-primary">clarity</p>
-        <div className="mt-8 space-y-4">
+    <AuthCard
+      title="Build a private place to land."
+      subtitle="Create an account to unlock grounded chat, guided focus sessions, and gentle task support."
+      footerPrompt="Already have an account?"
+      footerHref="/login"
+      footerLabel="Log in"
+    >
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-xs uppercase tracking-[0.24em] text-text-muted">Email</label>
           <input
             type="email"
             value={email}
@@ -62,6 +72,9 @@ export default function SignupPage() {
             placeholder="Email"
             className="w-full rounded-xl border border-border-base bg-bg-elevated px-4 py-3 text-text-primary outline-none placeholder:text-text-muted"
           />
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs uppercase tracking-[0.24em] text-text-muted">Password</label>
           <input
             type="password"
             value={password}
@@ -69,32 +82,30 @@ export default function SignupPage() {
             placeholder="Password"
             className="w-full rounded-xl border border-border-base bg-bg-elevated px-4 py-3 text-text-primary outline-none placeholder:text-text-muted"
           />
-          {error ? <p className="text-sm text-warning">{error}</p> : null}
-          {message ? <p className="text-sm text-success">{message}</p> : null}
-          <button
-            type="button"
-            onClick={() => void handleSignup()}
-            disabled={loading}
-            className="w-full rounded-xl bg-accent py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
-            {loading ? "Creating account..." : "Sign up"}
-          </button>
-          <div className="text-center text-sm text-text-secondary">or</div>
-          <button
-            type="button"
-            onClick={() => void handleGoogle()}
-            className="w-full rounded-xl border border-border-base bg-bg-elevated py-3 text-text-primary transition-colors hover:border-accent/40"
-          >
-            Continue with Google
-          </button>
         </div>
-        <p className="mt-6 text-sm text-text-secondary">
-          Already have an account?{" "}
-          <Link href="/login" className="text-text-primary underline underline-offset-4">
-            Log in
-          </Link>
+        <p className="text-xs leading-relaxed text-text-muted">
+          Use at least 6 characters. You can always switch to Google later if that feels easier.
         </p>
+        {error ? <p className="text-sm text-warning">{error}</p> : null}
+        {message ? <p className="text-sm text-success">{message}</p> : null}
+        <button
+          type="button"
+          onClick={() => void handleSignup()}
+          disabled={loading || googleLoading || !email.trim() || password.length < 6}
+          className="w-full rounded-xl bg-accent py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {loading ? "Creating account..." : "Sign up"}
+        </button>
+        <div className="text-center text-sm text-text-secondary">or</div>
+        <button
+          type="button"
+          onClick={() => void handleGoogle()}
+          disabled={loading || googleLoading}
+          className="w-full rounded-xl border border-border-base bg-bg-elevated py-3 text-text-primary transition-colors hover:border-accent/40 disabled:opacity-60"
+        >
+          {googleLoading ? "Opening Google..." : "Continue with Google"}
+        </button>
       </div>
-    </main>
+    </AuthCard>
   );
 }

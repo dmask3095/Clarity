@@ -90,6 +90,7 @@ Enable:
 - Streaming AI chat endpoint at `/api/chat`
 - Daily 50-message rate limit
 - Mood check-in
+- Daily usage visibility
 - Task breakdown with interactive checklist rendering
 - Focus mode
 - Grounding exercises
