@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChatWindow } from "@/components/Chat/ChatWindow";
+import { EmptyState } from "@/components/Dashboard/EmptyState";
 import { InputBar } from "@/components/Chat/InputBar";
 import { UsageCard } from "@/components/Dashboard/UsageCard";
 import { MoodCheckIn } from "@/components/MoodCheckIn";
@@ -90,7 +91,15 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
   }
 
   if (!hasHydrated) {
-    return <div className="flex min-h-screen items-center justify-center text-text-secondary">Loading your space...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-2xl space-y-4">
+          <div className="panel h-28 animate-pulse bg-bg-surface/70" />
+          <div className="panel h-40 animate-pulse bg-bg-surface/60" />
+          <div className="panel h-52 animate-pulse bg-bg-surface/50" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -156,9 +165,20 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
             ) : null}
 
             {messages.length === 0 && mode === "chat" ? (
-              <div className="mt-4">
-                <MoodCheckIn selectedMood={mood} onSelect={(nextMood) => void handleMoodSelect(nextMood)} />
-              </div>
+              <>
+                <div className="mt-4">
+                  <MoodCheckIn
+                    selectedMood={mood}
+                    onSelect={(nextMood) => void handleMoodSelect(nextMood)}
+                  />
+                </div>
+                <EmptyState
+                  onStarterPrompt={(prompt) => void handleSendMessage(prompt)}
+                  onOpenTasks={() => setTaskOpen(true)}
+                  onOpenGrounding={() => setMode("grounding")}
+                  onOpenFocus={() => setMode("focus")}
+                />
+              </>
             ) : null}
 
             <ChatWindow messages={messages} />
