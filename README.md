@@ -43,9 +43,15 @@ npm run lint
 npm run build
 ```
 
+For a full production checklist, see `DEPLOYMENT.md`.
+
 ## Supabase Setup
 
-Create the `usage` table for daily rate limiting:
+Create the `usage` table for daily rate limiting, or run:
+
+`supabase/migrations/20260627_create_usage.sql`
+
+The SQL is:
 
 ```sql
 CREATE TABLE usage (
