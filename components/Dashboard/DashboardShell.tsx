@@ -10,6 +10,7 @@ import { UsageCard } from "@/components/Dashboard/UsageCard";
 import { StatusToast } from "@/components/Feedback/StatusToast";
 import { MoodCheckIn } from "@/components/MoodCheckIn";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
+import SupportPanel from "@/components/Support/SupportPanel";
 import { useUsage } from "@/hooks/useUsage";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -56,6 +57,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
   const [taskGoal, setTaskGoal] = useState("");
   const [taskOpen, setTaskOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone?: "default" | "warning" } | null>(null);
 
   useEffect(() => {
@@ -139,6 +141,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
         onNewSession={handleNewSession}
         onOpenSettings={() => setSettingsOpen(true)}
         onCopySession={() => void handleCopySession()}
+        onOpenSupport={() => setSupportOpen(true)}
         onSignOut={() => void handleSignOut()}
       />
 
@@ -150,6 +153,7 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           onNewSession={handleNewSession}
           onOpenSettings={() => setSettingsOpen(true)}
           onCopySession={() => void handleCopySession()}
+          onOpenSupport={() => setSupportOpen(true)}
           onSignOut={() => void handleSignOut()}
           onSelectMode={setMode}
         />
@@ -271,6 +275,8 @@ export function DashboardShell({ initialUserLabel }: DashboardShellProps) {
           onChange={setPreferences}
         />
       ) : null}
+
+      {supportOpen ? <SupportPanel onClose={() => setSupportOpen(false)} /> : null}
 
       {toast ? <StatusToast message={toast.message} tone={toast.tone} /> : null}
     </div>

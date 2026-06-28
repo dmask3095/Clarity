@@ -5,6 +5,7 @@ import {
   Copy,
   Crosshair,
   FileText,
+  LifeBuoy,
   LogOut,
   MessageSquare,
   RefreshCw,
@@ -20,6 +21,7 @@ interface SidebarProps {
   onNewSession: () => void;
   onOpenSettings: () => void;
   onCopySession: () => void;
+  onOpenSupport: () => void;
   onSignOut: () => void;
 }
 
@@ -55,6 +57,7 @@ export function Sidebar({
   onNewSession,
   onOpenSettings,
   onCopySession,
+  onOpenSupport,
   onSignOut,
 }: SidebarProps) {
   return (
@@ -82,6 +85,9 @@ export function Sidebar({
         onClick={() => onSelectMode("thoughtdump")}
       >
         <FileText size={18} />
+      </SidebarButton>
+      <SidebarButton ariaLabel="Support options" onClick={onOpenSupport}>
+        <LifeBuoy size={18} />
       </SidebarButton>
       <div className="mt-auto flex flex-col gap-4">
         <SidebarButton ariaLabel="Copy session" onClick={onCopySession}>

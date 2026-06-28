@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckSquare, Copy, Crosshair, FileText, LogOut, RefreshCw, Settings, Wind } from "lucide-react";
+import { CheckSquare, Copy, Crosshair, FileText, LifeBuoy, LogOut, RefreshCw, Settings, Wind } from "lucide-react";
 import type { AppMode } from "@/store/sessionStore";
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   onNewSession: () => void;
   onOpenSettings: () => void;
   onCopySession: () => void;
+  onOpenSupport: () => void;
   onSignOut: () => void;
   onSelectMode: (mode: AppMode) => void;
 }
@@ -28,6 +29,7 @@ export function Header({
   onNewSession,
   onOpenSettings,
   onCopySession,
+  onOpenSupport,
   onSignOut,
   onSelectMode,
 }: HeaderProps) {
@@ -58,6 +60,9 @@ export function Header({
           </button>
           <button type="button" aria-label="Copy session" onClick={onCopySession} className="rounded-xl p-2 hover:bg-bg-surface">
             <Copy size={18} />
+          </button>
+          <button type="button" aria-label="Support options" onClick={onOpenSupport} className="rounded-xl p-2 hover:bg-bg-surface">
+            <LifeBuoy size={18} />
           </button>
           <button type="button" aria-label="New session" onClick={onNewSession} className="rounded-xl p-2 hover:bg-bg-surface">
             <RefreshCw size={18} />
